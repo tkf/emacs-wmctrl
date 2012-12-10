@@ -26,6 +26,35 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(require 'deferred)
+
+(defvar wmctrl-program "wmctrl")
+
+(defvar wmctrl--window-list-re
+  "^0x\\([0-9a-f]+\\) +\\([0-9]+\\) +\\([0-9]+\\) +\\([^ ]+\\) +\\(.*\\)$")
+
+(defun wmctrl--parse-window-list ()
+  "Parse window list data in the current buffer"
+  (goto-char (point-min))
+  (loop while (re-search-forward wmctrl--window-list-re nil t)
+        collect (list
+                 :window (match-string 1)
+                 :desktop (match-string 2)
+                 :pid (match-string 3)
+                 :machine (match-string 4)
+                 :title (match-string 5))))
+
+(defun wmctrl-window-list-d ()
+  (deferred:$
+    (deferred:process-buffer wmctrl-program "-lP")
+    (deferred:nextc it
+      (lambda (buffer)
+        (unwind-protect
+            (with-current-buffer buffer
+              (wmctrl--parse-window-list))
+          (kill-buffer buffer))))))
+
 (provide 'wmctrl)
 
 ;;; wmctrl.el ends here
