@@ -55,6 +55,7 @@
               (wmctrl--parse-window-list))
           (kill-buffer buffer))))))
 
+;;;###autoload
 (defun wmctrl-raise-me ()
   "Set window focus on this Emacs instance."
   (deferred:$
@@ -69,7 +70,6 @@
                      (return
                       (deferred:process wmctrl-program "-i" "-a" window))))
               finally (error "Emacs cannot be found by wmctrl!"))))))
-
 
 (provide 'wmctrl)
 
